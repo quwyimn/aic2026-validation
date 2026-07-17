@@ -1,0 +1,140 @@
+# =============================================================================
+# Validation config — AI City Challenge 2026, Track 1
+#
+# Single source of truth. Every threshold, path, and class ID lives here and
+# nowhere else. If a number appears in src/ that isn't read from this file,
+# that's a bug.
+# =============================================================================
+
+# --- Paths -------------------------------------------------------------------
+paths:
+  gt_root: data/gt              # data/gt/<split>/<scene>/ground_truth.json
+  input_root: data/input        # File A + File B from the training stage
+  synthetic_root: data/synthetic
+  reports_root: reports
+  class_registry: config/class_registry.json   # written by scripts/inspect_gt.py
+
+# --- Class table -------------------------------------------------------------
+# Confirmed against all 23 GT scenes on the full scan: all 7 present, no
+# unknown classes. PalletTruck is absent from the organizers' published table
+# but exists in the GT (97 objects, 13 scenes) — the team assigns it id 6.
+classes:
+  Person: 0
+  Forklift: 1
+  NovaCarter: 2
+  Transporter: 3
+  FourierGR1T2: 4
+  AgilityDigit: 5
+  PalletTruck: 6
+
+# --- Scenes ------------------------------------------------------------------
+# Two warehouse families exist:
+#   A (~100m): Person, Forklift, PalletTruck   -> W000-007, W017-022
+#   B (~16m):  Person, AgilityDigit, FourierGR1T2, NovaCarter, Transporter
+#              -> W008-016
+# Val sits in family A and has NO AgilityDigit and NO FourierGR1T2 at all,
+# which is why family-B scenes are needed despite the model having trained
+# on them.
+scenes:
+  # Model has not seen these. Metrics here are predictive of the test score.
+  clean:
+    - {name: Warehouse_020, split: val, family: A}
+    - {name: Warehouse_021, split: val, family: A}   # duplicate of W020
+    - {name: Warehouse_022, split: val, family: A}   # irregular: 9270 frames, 4 cams
+
+  # Model trained on these. Metrics are an upper bound, not a prediction.
+  # Included because they are the only source of GT for 2 of the 7 classes.
+  seen:
+    - {name: Warehouse_011, split: train, family: B}   # 6 of 7 classes in one scene
+
+  # Scene pairs that are byte-identical in object count and bounds. Not
+  # independent samples — never count both as evidence.
+  duplicate_pairs:
+    - [Warehouse_000, Warehouse_001]
+    - [Warehouse_002, Warehouse_003]
+    - [Warehouse_004, Warehouse_005]
+    - [Warehouse_006, Warehouse_007]
+    - [Warehouse_020, Warehouse_021]
+
+# --- Matching thresholds -----------------------------------------------------
+# Matching is class-blind in both layers, by design. Matching on geometry
+# alone is what makes a misclassification land in the right confusion cell
+# instead of vanishing into a miss + ghost pair.
+matching:
+  layer_2d:
+    iou_threshold: 0.5
+    algorithm: hungarian        # never greedy
+    # Minimum box area in pixels. The GT contains boxes with zero or near-zero
+    # area — objects occluded down to nothing, or clipped at the frame edge.
+    # They cannot be detected, so counting them as misses blames the model for
+    # something no detector could do. Both sides are filtered by the same rule
+    # and the count is reported, never dropped quietly.
+    min_box_area_px: 1.0
+  layer_3d:
+    distance_threshold_m: 1.0   # Euclidean, world space
+    algorithm: hungarian
+
+# --- Synthetic data generation (Step 2) --------------------------------------
+synthetic:
+  source_scenes:
+    - Warehouse_020             # family A -> supplies PalletTruck
+    - Warehouse_011             # family B -> supplies AgilityDigit, FourierGR1T2
+  # Frames to sample per scene. Full-length by default so the synthetic sets
+  # mirror the real thing. Note the size: at full length File B runs to roughly
+  # 5M lines (~250 MB) per scene per error set. Override with --frames for a
+  # quick run while iterating on the matching code.
+  frames: 9000
+  frame_stride: 1
+  seed: 42                      # reproducibility: same seed, same injected errors
+
+  # One error type per generated set, so a failure in Step 5 points at exactly
+  # one cause. The 'mixed' set combines them all, closer to reality.
+  # 'clean' injects nothing: the validator must report a perfect score on it.
+  # If it doesn't, the validator is broken at the root.
+  error_sets:
+    clean:          {}
+    class_swap:     {rate: 0.05}                    # model confuses objects
+    # Two magnitudes of the same injection, on either side of the 1m match
+    # threshold. The first must still match (the threshold tolerates small
+    # error); the second must not (it produces a miss + ghost). Testing only
+    # one of them proves nothing about whether the threshold works.
+    position_shift:        {rate: 0.10, sigma_m: 0.3}
+    position_shift_severe: {rate: 0.10, sigma_m: 1.5}
+    deletion:       {rate: 0.05}                    # model misses
+    phantom:        {rate: 0.05}                    # false positives
+    mapping_shift:  {offset: 1}                     # whole class table miswired
+    fragmentation:  {rate: 0.10, splits: 3}         # one track cut into many IDs
+    mixed:          {rate: 0.05}
+
+# --- Reporting ---------------------------------------------------------------
+reporting:
+  # CLEAN and SEEN are always reported as separate blocks. Never averaged into
+  # one figure — an overall number carried by scenes the model trained on
+  # misleads whoever reads it.
+  separate_blocks: true
+  # Lead with macro-average. Person has 5.9M detections vs NovaCarter's 253K,
+  # so a high micro-average can mean nothing more than "always guess Person".
+  primary_metric: macro_average
+  # Classes with fewer than this many GT objects in a block get flagged as
+  # statistically thin. W022 has only 2 NovaCarter and 2 Transporter objects.
+  thin_class_threshold: 10
+
+# --- Handoff format ----------------------------------------------------------
+# Agreed with the training stage. Both files use official class IDs above;
+# the internal -> official remap happens before export, not here.
+handoff:
+  file_a:
+    name: track1.txt
+    columns: [scene_id, class_id, object_id, frame_id, x, y, z,
+              width, length, height, yaw]
+  file_b:
+    name: detections_2d.txt
+    columns: [camera_id, frame_id, class_id, x1, y1, x2, y2, conf]
+  conventions:
+    frame_id_base: 0
+    coords_3d_unit: meters
+    yaw_unit: radians
+    image_size: [1920, 1080]
+    bbox_2d_origin: top_left
+    separator: space
+    encoding: utf-8

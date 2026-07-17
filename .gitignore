@@ -1,0 +1,9 @@
+data/gt/*
+data/input/*
+data/synthetic/*
+reports/*
+!**/.gitkeep
+__pycache__/
+*.pyc
+venv/
+venv/

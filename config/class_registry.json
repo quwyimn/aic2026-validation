@@ -1,0 +1,1599 @@
+{
+  "classes": {
+    "AgilityDigit": {
+      "scenes": [
+        "Warehouse_008",
+        "Warehouse_009",
+        "Warehouse_010",
+        "Warehouse_011",
+        "Warehouse_012",
+        "Warehouse_013",
+        "Warehouse_014",
+        "Warehouse_015",
+        "Warehouse_016"
+      ],
+      "unique_objects": 65,
+      "detections": 585000
+    },
+    "Forklift": {
+      "scenes": [
+        "Warehouse_000",
+        "Warehouse_001",
+        "Warehouse_002",
+        "Warehouse_003",
+        "Warehouse_004",
+        "Warehouse_005",
+        "Warehouse_006",
+        "Warehouse_007",
+        "Warehouse_010",
+        "Warehouse_011",
+        "Warehouse_016",
+        "Warehouse_017",
+        "Warehouse_018",
+        "Warehouse_019",
+        "Warehouse_020",
+        "Warehouse_021",
+        "Warehouse_022"
+      ],
+      "unique_objects": 102,
+      "detections": 858382
+    },
+    "FourierGR1T2": {
+      "scenes": [
+        "Warehouse_008",
+        "Warehouse_009",
+        "Warehouse_010",
+        "Warehouse_011",
+        "Warehouse_012",
+        "Warehouse_013",
+        "Warehouse_014",
+        "Warehouse_015",
+        "Warehouse_016"
+      ],
+      "unique_objects": 67,
+      "detections": 600557
+    },
+    "NovaCarter": {
+      "scenes": [
+        "Warehouse_010",
+        "Warehouse_011",
+        "Warehouse_012",
+        "Warehouse_013",
+        "Warehouse_014",
+        "Warehouse_015",
+        "Warehouse_016",
+        "Warehouse_022"
+      ],
+      "unique_objects": 30,
+      "detections": 252944
+    },
+    "PalletTruck": {
+      "scenes": [
+        "Warehouse_000",
+        "Warehouse_001",
+        "Warehouse_002",
+        "Warehouse_003",
+        "Warehouse_004",
+        "Warehouse_005",
+        "Warehouse_006",
+        "Warehouse_007",
+        "Warehouse_017",
+        "Warehouse_018",
+        "Warehouse_019",
+        "Warehouse_020",
+        "Warehouse_021"
+      ],
+      "unique_objects": 97,
+      "detections": 872602
+    },
+    "Person": {
+      "scenes": [
+        "Warehouse_000",
+        "Warehouse_001",
+        "Warehouse_002",
+        "Warehouse_003",
+        "Warehouse_004",
+        "Warehouse_005",
+        "Warehouse_006",
+        "Warehouse_007",
+        "Warehouse_008",
+        "Warehouse_009",
+        "Warehouse_010",
+        "Warehouse_011",
+        "Warehouse_012",
+        "Warehouse_013",
+        "Warehouse_014",
+        "Warehouse_015",
+        "Warehouse_016",
+        "Warehouse_017",
+        "Warehouse_018",
+        "Warehouse_019",
+        "Warehouse_020",
+        "Warehouse_021",
+        "Warehouse_022"
+      ],
+      "unique_objects": 773,
+      "detections": 5908987
+    },
+    "Transporter": {
+      "scenes": [
+        "Warehouse_008",
+        "Warehouse_009",
+        "Warehouse_010",
+        "Warehouse_011",
+        "Warehouse_012",
+        "Warehouse_013",
+        "Warehouse_014",
+        "Warehouse_015",
+        "Warehouse_016",
+        "Warehouse_022"
+      ],
+      "unique_objects": 66,
+      "detections": 580135
+    }
+  },
+  "official_class_ids": {
+    "Person": 0,
+    "Forklift": 1,
+    "NovaCarter": 2,
+    "Transporter": 3,
+    "FourierGR1T2": 4,
+    "AgilityDigit": 5,
+    "PalletTruck": 6
+  },
+  "scenes": [
+    {
+      "scene": "Warehouse_000",
+      "split": "train",
+      "schema": "full",
+      "field_map": {
+        "object_id": "object id",
+        "class": "object type",
+        "loc3d": "3d location",
+        "bbox3d": "3d bounding box scale",
+        "rot3d": "3d bounding box rotation",
+        "bbox2d": "2d bounding box visible"
+      },
+      "frames": 9000,
+      "detections": 666219,
+      "cameras": [
+        "Camera_0000",
+        "Camera_0001",
+        "Camera_0002",
+        "Camera_0003",
+        "Camera_0004",
+        "Camera_0005",
+        "Camera_0006",
+        "Camera_0007",
+        "Camera_0008",
+        "Camera_0009",
+        "Camera_0010",
+        "Camera_0011",
+        "Camera_0012",
+        "Camera_0013",
+        "Camera_0014",
+        "Camera_0015",
+        "Camera_0016",
+        "Camera_0017",
+        "Camera_0019"
+      ],
+      "camera_count": 19,
+      "classes": {
+        "Forklift": {
+          "detections": 80626,
+          "unique_objects": 9
+        },
+        "PalletTruck": {
+          "detections": 90000,
+          "unique_objects": 10
+        },
+        "Person": {
+          "detections": 495593,
+          "unique_objects": 60
+        }
+      },
+      "bounds": {
+        "x": [
+          -99.17680163481553,
+          -0.4669466633359747
+        ],
+        "y": [
+          -99.24782902339979,
+          -1.7318751841431146
+        ],
+        "z": [
+          0.5992050595651285,
+          1.4133532394923471
+        ]
+      },
+      "missing_fields": []
+    },
+    {
+      "scene": "Warehouse_001",
+      "split": "train",
+      "schema": "full",
+      "field_map": {
+        "object_id": "object id",
+        "class": "object type",
+        "loc3d": "3d location",
+        "bbox3d": "3d bounding box scale",
+        "rot3d": "3d bounding box rotation",
+        "bbox2d": "2d bounding box visible"
+      },
+      "frames": 9000,
+      "detections": 666219,
+      "cameras": [
+        "Camera_0000",
+        "Camera_0001",
+        "Camera_0002",
+        "Camera_0003",
+        "Camera_0004",
+        "Camera_0005",
+        "Camera_0006",
+        "Camera_0007",
+        "Camera_0008",
+        "Camera_0009",
+        "Camera_0010",
+        "Camera_0011",
+        "Camera_0012",
+        "Camera_0013",
+        "Camera_0014",
+        "Camera_0015",
+        "Camera_0016",
+        "Camera_0017",
+        "Camera_0019"
+      ],
+      "camera_count": 19,
+      "classes": {
+        "Forklift": {
+          "detections": 80626,
+          "unique_objects": 9
+        },
+        "PalletTruck": {
+          "detections": 90000,
+          "unique_objects": 10
+        },
+        "Person": {
+          "detections": 495593,
+          "unique_objects": 60
+        }
+      },
+      "bounds": {
+        "x": [
+          -99.17680163481553,
+          -0.4669466633359747
+        ],
+        "y": [
+          -99.24782902339979,
+          -1.7318751841431146
+        ],
+        "z": [
+          0.5992050595651285,
+          1.4133532394923471
+        ]
+      },
+      "missing_fields": []
+    },
+    {
+      "scene": "Warehouse_002",
+      "split": "train",
+      "schema": "full",
+      "field_map": {
+        "object_id": "object id",
+        "class": "object type",
+        "loc3d": "3d location",
+        "bbox3d": "3d bounding box scale",
+        "rot3d": "3d bounding box rotation",
+        "bbox2d": "2d bounding box visible"
+      },
+      "frames": 9000,
+      "detections": 621483,
+      "cameras": [
+        "Camera_0000",
+        "Camera_0001",
+        "Camera_0002",
+        "Camera_0003",
+        "Camera_0004",
+        "Camera_0005",
+        "Camera_0006",
+        "Camera_0007",
+        "Camera_0008",
+        "Camera_0009",
+        "Camera_0010",
+        "Camera_0011",
+        "Camera_0012",
+        "Camera_0013",
+        "Camera_0014",
+        "Camera_0015",
+        "Camera_0016",
+        "Camera_0017",
+        "Camera_0018",
+        "Camera_0019"
+      ],
+      "camera_count": 20,
+      "classes": {
+        "Forklift": {
+          "detections": 76756,
+          "unique_objects": 9
+        },
+        "PalletTruck": {
+          "detections": 80813,
+          "unique_objects": 9
+        },
+        "Person": {
+          "detections": 463914,
+          "unique_objects": 60
+        }
+      },
+      "bounds": {
+        "x": [
+          -99.08646027843807,
+          -0.4289387532998587
+        ],
+        "y": [
+          -98.24211153844196,
+          -1.7630845913562314
+        ],
+        "z": [
+          0.5992050595651285,
+          1.4133532394923471
+        ]
+      },
+      "missing_fields": []
+    },
+    {
+      "scene": "Warehouse_003",
+      "split": "train",
+      "schema": "full",
+      "field_map": {
+        "object_id": "object id",
+        "class": "object type",
+        "loc3d": "3d location",
+        "bbox3d": "3d bounding box scale",
+        "rot3d": "3d bounding box rotation",
+        "bbox2d": "2d bounding box visible"
+      },
+      "frames": 9000,
+      "detections": 621483,
+      "cameras": [
+        "Camera_0000",
+        "Camera_0001",
+        "Camera_0002",
+        "Camera_0003",
+        "Camera_0004",
+        "Camera_0005",
+        "Camera_0006",
+        "Camera_0007",
+        "Camera_0008",
+        "Camera_0009",
+        "Camera_0010",
+        "Camera_0011",
+        "Camera_0012",
+        "Camera_0013",
+        "Camera_0014",
+        "Camera_0015",
+        "Camera_0016",
+        "Camera_0017",
+        "Camera_0018",
+        "Camera_0019"
+      ],
+      "camera_count": 20,
+      "classes": {
+        "Forklift": {
+          "detections": 76756,
+          "unique_objects": 9
+        },
+        "PalletTruck": {
+          "detections": 80813,
+          "unique_objects": 9
+        },
+        "Person": {
+          "detections": 463914,
+          "unique_objects": 60
+        }
+      },
+      "bounds": {
+        "x": [
+          -99.08646027843807,
+          -0.4289387532998587
+        ],
+        "y": [
+          -98.24211153844196,
+          -1.7630845913562314
+        ],
+        "z": [
+          0.5992050595651285,
+          1.4133532394923471
+        ]
+      },
+      "missing_fields": []
+    },
+    {
+      "scene": "Warehouse_004",
+      "split": "train",
+      "schema": "full",
+      "field_map": {
+        "object_id": "object id",
+        "class": "object type",
+        "loc3d": "3d location",
+        "bbox3d": "3d bounding box scale",
+        "rot3d": "3d bounding box rotation",
+        "bbox2d": "2d bounding box visible"
+      },
+      "frames": 9000,
+      "detections": 643151,
+      "cameras": [
+        "Camera_0000",
+        "Camera_0001",
+        "Camera_0002",
+        "Camera_0003",
+        "Camera_0004",
+        "Camera_0005",
+        "Camera_0007",
+        "Camera_0008",
+        "Camera_0009",
+        "Camera_0010",
+        "Camera_0011",
+        "Camera_0012",
+        "Camera_0013",
+        "Camera_0014",
+        "Camera_0015",
+        "Camera_0016",
+        "Camera_0017",
+        "Camera_0018",
+        "Camera_0019"
+      ],
+      "camera_count": 19,
+      "classes": {
+        "Forklift": {
+          "detections": 78547,
+          "unique_objects": 9
+        },
+        "PalletTruck": {
+          "detections": 90000,
+          "unique_objects": 10
+        },
+        "Person": {
+          "detections": 474604,
+          "unique_objects": 60
+        }
+      },
+      "bounds": {
+        "x": [
+          -99.08646027843807,
+          -0.36039881678404645
+        ],
+        "y": [
+          -99.59400519428695,
+          -1.6520102458125012
+        ],
+        "z": [
+          0.5992050595651285,
+          1.4133532394923471
+        ]
+      },
+      "missing_fields": []
+    },
+    {
+      "scene": "Warehouse_005",
+      "split": "train",
+      "schema": "full",
+      "field_map": {
+        "object_id": "object id",
+        "class": "object type",
+        "loc3d": "3d location",
+        "bbox3d": "3d bounding box scale",
+        "rot3d": "3d bounding box rotation",
+        "bbox2d": "2d bounding box visible"
+      },
+      "frames": 9000,
+      "detections": 643151,
+      "cameras": [
+        "Camera_0000",
+        "Camera_0001",
+        "Camera_0002",
+        "Camera_0003",
+        "Camera_0004",
+        "Camera_0005",
+        "Camera_0007",
+        "Camera_0008",
+        "Camera_0009",
+        "Camera_0010",
+        "Camera_0011",
+        "Camera_0012",
+        "Camera_0013",
+        "Camera_0014",
+        "Camera_0015",
+        "Camera_0016",
+        "Camera_0017",
+        "Camera_0018",
+        "Camera_0019"
+      ],
+      "camera_count": 19,
+      "classes": {
+        "Forklift": {
+          "detections": 78547,
+          "unique_objects": 9
+        },
+        "PalletTruck": {
+          "detections": 90000,
+          "unique_objects": 10
+        },
+        "Person": {
+          "detections": 474604,
+          "unique_objects": 60
+        }
+      },
+      "bounds": {
+        "x": [
+          -99.08646027843807,
+          -0.36039881678404645
+        ],
+        "y": [
+          -99.59400519428695,
+          -1.6520102458125012
+        ],
+        "z": [
+          0.5992050595651285,
+          1.4133532394923471
+        ]
+      },
+      "missing_fields": []
+    },
+    {
+      "scene": "Warehouse_006",
+      "split": "train",
+      "schema": "full",
+      "field_map": {
+        "object_id": "object id",
+        "class": "object type",
+        "loc3d": "3d location",
+        "bbox3d": "3d bounding box scale",
+        "rot3d": "3d bounding box rotation",
+        "bbox2d": "2d bounding box visible"
+      },
+      "frames": 9000,
+      "detections": 424003,
+      "cameras": [
+        "Camera_0000",
+        "Camera_0001",
+        "Camera_0002",
+        "Camera_0003",
+        "Camera_0004",
+        "Camera_0005",
+        "Camera_0006",
+        "Camera_0007",
+        "Camera_0009",
+        "Camera_0010",
+        "Camera_0012",
+        "Camera_0013",
+        "Camera_0014",
+        "Camera_0015",
+        "Camera_0016",
+        "Camera_0017",
+        "Camera_0018",
+        "Camera_0019"
+      ],
+      "camera_count": 18,
+      "classes": {
+        "Forklift": {
+          "detections": 54615,
+          "unique_objects": 8
+        },
+        "PalletTruck": {
+          "detections": 72000,
+          "unique_objects": 8
+        },
+        "Person": {
+          "detections": 297388,
+          "unique_objects": 52
+        }
+      },
+      "bounds": {
+        "x": [
+          -99.08646027843807,
+          -0.5388026093529688
+        ],
+        "y": [
+          -98.12814228108614,
+          -1.7914776890870003
+        ],
+        "z": [
+          0.6005222710443334,
+          1.4133532394923471
+        ]
+      },
+      "missing_fields": []
+    },
+    {
+      "scene": "Warehouse_007",
+      "split": "train",
+      "schema": "full",
+      "field_map": {
+        "object_id": "object id",
+        "class": "object type",
+        "loc3d": "3d location",
+        "bbox3d": "3d bounding box scale",
+        "rot3d": "3d bounding box rotation",
+        "bbox2d": "2d bounding box visible"
+      },
+      "frames": 9000,
+      "detections": 424003,
+      "cameras": [
+        "Camera_0000",
+        "Camera_0001",
+        "Camera_0002",
+        "Camera_0003",
+        "Camera_0004",
+        "Camera_0005",
+        "Camera_0006",
+        "Camera_0007",
+        "Camera_0009",
+        "Camera_0010",
+        "Camera_0012",
+        "Camera_0013",
+        "Camera_0014",
+        "Camera_0015",
+        "Camera_0016",
+        "Camera_0017",
+        "Camera_0018",
+        "Camera_0019"
+      ],
+      "camera_count": 18,
+      "classes": {
+        "Forklift": {
+          "detections": 54615,
+          "unique_objects": 8
+        },
+        "PalletTruck": {
+          "detections": 72000,
+          "unique_objects": 8
+        },
+        "Person": {
+          "detections": 297388,
+          "unique_objects": 52
+        }
+      },
+      "bounds": {
+        "x": [
+          -99.08646027843807,
+          -0.5388026093529688
+        ],
+        "y": [
+          -98.12814228108614,
+          -1.7914776890870003
+        ],
+        "z": [
+          0.6005222710443334,
+          1.4133532394923471
+        ]
+      },
+      "missing_fields": []
+    },
+    {
+      "scene": "Warehouse_008",
+      "split": "train",
+      "schema": "full",
+      "field_map": {
+        "object_id": "object id",
+        "class": "object type",
+        "loc3d": "3d location",
+        "bbox3d": "3d bounding box scale",
+        "rot3d": "3d bounding box rotation",
+        "bbox2d": "2d bounding box visible"
+      },
+      "frames": 9000,
+      "detections": 243000,
+      "cameras": [
+        "Camera_0000",
+        "Camera_0001",
+        "Camera_0002",
+        "Camera_0003",
+        "Camera_0004",
+        "Camera_0005",
+        "Camera_0006",
+        "Camera_0007",
+        "Camera_0008",
+        "Camera_0009",
+        "Camera_0010",
+        "Camera_0011"
+      ],
+      "camera_count": 12,
+      "classes": {
+        "AgilityDigit": {
+          "detections": 54000,
+          "unique_objects": 6
+        },
+        "FourierGR1T2": {
+          "detections": 72000,
+          "unique_objects": 8
+        },
+        "Person": {
+          "detections": 90000,
+          "unique_objects": 10
+        },
+        "Transporter": {
+          "detections": 27000,
+          "unique_objects": 3
+        }
+      },
+      "bounds": {
+        "x": [
+          -9.64502878692022,
+          7.995879399549796
+        ],
+        "y": [
+          -19.171581904220808,
+          -0.5289913420623408
+        ],
+        "z": [
+          0.11453527584671974,
+          1.003770381119864
+        ]
+      },
+      "missing_fields": []
+    },
+    {
+      "scene": "Warehouse_009",
+      "split": "train",
+      "schema": "full",
+      "field_map": {
+        "object_id": "object id",
+        "class": "object type",
+        "loc3d": "3d location",
+        "bbox3d": "3d bounding box scale",
+        "rot3d": "3d bounding box rotation",
+        "bbox2d": "2d bounding box visible"
+      },
+      "frames": 9000,
+      "detections": 252000,
+      "cameras": [
+        "Camera_0000",
+        "Camera_0001",
+        "Camera_0002",
+        "Camera_0003",
+        "Camera_0004",
+        "Camera_0005",
+        "Camera_0006",
+        "Camera_0007",
+        "Camera_0008",
+        "Camera_0009",
+        "Camera_0010",
+        "Camera_0011"
+      ],
+      "camera_count": 12,
+      "classes": {
+        "AgilityDigit": {
+          "detections": 54000,
+          "unique_objects": 6
+        },
+        "FourierGR1T2": {
+          "detections": 54000,
+          "unique_objects": 6
+        },
+        "Person": {
+          "detections": 117000,
+          "unique_objects": 13
+        },
+        "Transporter": {
+          "detections": 27000,
+          "unique_objects": 3
+        }
+      },
+      "bounds": {
+        "x": [
+          -9.590811384522505,
+          8.331887396444358
+        ],
+        "y": [
+          -19.52411737385471,
+          0.12654109592391918
+        ],
+        "z": [
+          0.11453527584671974,
+          1.0037704624429082
+        ]
+      },
+      "missing_fields": []
+    },
+    {
+      "scene": "Warehouse_010",
+      "split": "train",
+      "schema": "full",
+      "field_map": {
+        "object_id": "object id",
+        "class": "object type",
+        "loc3d": "3d location",
+        "bbox3d": "3d bounding box scale",
+        "rot3d": "3d bounding box rotation",
+        "bbox2d": "2d bounding box visible"
+      },
+      "frames": 9000,
+      "detections": 536019,
+      "cameras": [
+        "Camera_0000",
+        "Camera_0001",
+        "Camera_0002",
+        "Camera_0003",
+        "Camera_0004",
+        "Camera_0005",
+        "Camera_0006",
+        "Camera_0007",
+        "Camera_0008",
+        "Camera_0009",
+        "Camera_0010"
+      ],
+      "camera_count": 11,
+      "classes": {
+        "AgilityDigit": {
+          "detections": 72000,
+          "unique_objects": 8
+        },
+        "Forklift": {
+          "detections": 27000,
+          "unique_objects": 3
+        },
+        "FourierGR1T2": {
+          "detections": 69786,
+          "unique_objects": 8
+        },
+        "NovaCarter": {
+          "detections": 34694,
+          "unique_objects": 4
+        },
+        "Person": {
+          "detections": 224772,
+          "unique_objects": 25
+        },
+        "Transporter": {
+          "detections": 107767,
+          "unique_objects": 12
+        }
+      },
+      "bounds": {
+        "x": [
+          -25.71604295201953,
+          4.93012269574089
+        ],
+        "y": [
+          -22.896417316546774,
+          29.79565561298807
+        ],
+        "z": [
+          0.11397299504713487,
+          1.4133285626111793
+        ]
+      },
+      "missing_fields": []
+    },
+    {
+      "scene": "Warehouse_011",
+      "split": "train",
+      "schema": "full",
+      "field_map": {
+        "object_id": "object id",
+        "class": "object type",
+        "loc3d": "3d location",
+        "bbox3d": "3d bounding box scale",
+        "rot3d": "3d bounding box rotation",
+        "bbox2d": "2d bounding box visible"
+      },
+      "frames": 9000,
+      "detections": 494981,
+      "cameras": [
+        "Camera_0000",
+        "Camera_0001",
+        "Camera_0002",
+        "Camera_0003",
+        "Camera_0004",
+        "Camera_0005",
+        "Camera_0006",
+        "Camera_0007",
+        "Camera_0008",
+        "Camera_0009"
+      ],
+      "camera_count": 10,
+      "classes": {
+        "AgilityDigit": {
+          "detections": 90000,
+          "unique_objects": 10
+        },
+        "Forklift": {
+          "detections": 27000,
+          "unique_objects": 3
+        },
+        "FourierGR1T2": {
+          "detections": 90000,
+          "unique_objects": 10
+        },
+        "NovaCarter": {
+          "detections": 26981,
+          "unique_objects": 3
+        },
+        "Person": {
+          "detections": 180000,
+          "unique_objects": 20
+        },
+        "Transporter": {
+          "detections": 81000,
+          "unique_objects": 9
+        }
+      },
+      "bounds": {
+        "x": [
+          -25.474519383336684,
+          5.125560251042912
+        ],
+        "y": [
+          -22.734327067747415,
+          29.524938007167453
+        ],
+        "z": [
+          0.11553526982355233,
+          1.4133285626111793
+        ]
+      },
+      "missing_fields": []
+    },
+    {
+      "scene": "Warehouse_012",
+      "split": "train",
+      "schema": "full",
+      "field_map": {
+        "object_id": "object id",
+        "class": "object type",
+        "loc3d": "3d location",
+        "bbox3d": "3d bounding box scale",
+        "rot3d": "3d bounding box rotation",
+        "bbox2d": "2d bounding box visible"
+      },
+      "frames": 9000,
+      "detections": 378000,
+      "cameras": [
+        "Camera_0000",
+        "Camera_0001",
+        "Camera_0002",
+        "Camera_0003",
+        "Camera_0004",
+        "Camera_0005",
+        "Camera_0006",
+        "Camera_0007"
+      ],
+      "camera_count": 8,
+      "classes": {
+        "AgilityDigit": {
+          "detections": 72000,
+          "unique_objects": 8
+        },
+        "FourierGR1T2": {
+          "detections": 54000,
+          "unique_objects": 6
+        },
+        "NovaCarter": {
+          "detections": 36000,
+          "unique_objects": 4
+        },
+        "Person": {
+          "detections": 135000,
+          "unique_objects": 15
+        },
+        "Transporter": {
+          "detections": 81000,
+          "unique_objects": 9
+        }
+      },
+      "bounds": {
+        "x": [
+          -8.959126816745208,
+          8.983235060128775
+        ],
+        "y": [
+          -11.391117607897058,
+          17.578910946836018
+        ],
+        "z": [
+          0.11553527787327766,
+          0.9641754454408797
+        ]
+      },
+      "missing_fields": []
+    },
+    {
+      "scene": "Warehouse_013",
+      "split": "train",
+      "schema": "full",
+      "field_map": {
+        "object_id": "object id",
+        "class": "object type",
+        "loc3d": "3d location",
+        "bbox3d": "3d bounding box scale",
+        "rot3d": "3d bounding box rotation",
+        "bbox2d": "2d bounding box visible"
+      },
+      "frames": 9000,
+      "detections": 394288,
+      "cameras": [
+        "Camera_0000",
+        "Camera_0001",
+        "Camera_0002",
+        "Camera_0003",
+        "Camera_0004",
+        "Camera_0005",
+        "Camera_0006",
+        "Camera_0007",
+        "Camera_0008",
+        "Camera_0009"
+      ],
+      "camera_count": 10,
+      "classes": {
+        "AgilityDigit": {
+          "detections": 45000,
+          "unique_objects": 5
+        },
+        "FourierGR1T2": {
+          "detections": 71771,
+          "unique_objects": 8
+        },
+        "NovaCarter": {
+          "detections": 45000,
+          "unique_objects": 5
+        },
+        "Person": {
+          "detections": 142517,
+          "unique_objects": 16
+        },
+        "Transporter": {
+          "detections": 90000,
+          "unique_objects": 10
+        }
+      },
+      "bounds": {
+        "x": [
+          -8.830128917765567,
+          8.627922199589548
+        ],
+        "y": [
+          -11.07887084601926,
+          18.01665309749498
+        ],
+        "z": [
+          0.11553527787327766,
+          0.951916385313325
+        ]
+      },
+      "missing_fields": []
+    },
+    {
+      "scene": "Warehouse_014",
+      "split": "train",
+      "schema": "full",
+      "field_map": {
+        "object_id": "object id",
+        "class": "object type",
+        "loc3d": "3d location",
+        "bbox3d": "3d bounding box scale",
+        "rot3d": "3d bounding box rotation",
+        "bbox2d": "2d bounding box visible"
+      },
+      "frames": 9000,
+      "detections": 423000,
+      "cameras": [
+        "Camera_0000",
+        "Camera_0001",
+        "Camera_0002",
+        "Camera_0003",
+        "Camera_0004",
+        "Camera_0005",
+        "Camera_0006",
+        "Camera_0007",
+        "Camera_0008",
+        "Camera_0009",
+        "Camera_0010"
+      ],
+      "camera_count": 11,
+      "classes": {
+        "AgilityDigit": {
+          "detections": 63000,
+          "unique_objects": 7
+        },
+        "FourierGR1T2": {
+          "detections": 81000,
+          "unique_objects": 9
+        },
+        "NovaCarter": {
+          "detections": 36000,
+          "unique_objects": 4
+        },
+        "Person": {
+          "detections": 180000,
+          "unique_objects": 20
+        },
+        "Transporter": {
+          "detections": 63000,
+          "unique_objects": 7
+        }
+      },
+      "bounds": {
+        "x": [
+          -9.80509137531692,
+          8.817850535931248
+        ],
+        "y": [
+          -11.555874681819247,
+          17.275588724157515
+        ],
+        "z": [
+          0.11553525636770345,
+          0.9791782083742078
+        ]
+      },
+      "missing_fields": []
+    },
+    {
+      "scene": "Warehouse_015",
+      "split": "train",
+      "schema": "full",
+      "field_map": {
+        "object_id": "object id",
+        "class": "object type",
+        "loc3d": "3d location",
+        "bbox3d": "3d bounding box scale",
+        "rot3d": "3d bounding box rotation",
+        "bbox2d": "2d bounding box visible"
+      },
+      "frames": 9000,
+      "detections": 441000,
+      "cameras": [
+        "Camera_0000",
+        "Camera_0001",
+        "Camera_0002",
+        "Camera_0003",
+        "Camera_0004",
+        "Camera_0005",
+        "Camera_0006",
+        "Camera_0007",
+        "Camera_0008",
+        "Camera_0009"
+      ],
+      "camera_count": 10,
+      "classes": {
+        "AgilityDigit": {
+          "detections": 72000,
+          "unique_objects": 8
+        },
+        "FourierGR1T2": {
+          "detections": 63000,
+          "unique_objects": 7
+        },
+        "NovaCarter": {
+          "detections": 45000,
+          "unique_objects": 5
+        },
+        "Person": {
+          "detections": 198000,
+          "unique_objects": 22
+        },
+        "Transporter": {
+          "detections": 63000,
+          "unique_objects": 7
+        }
+      },
+      "bounds": {
+        "x": [
+          -9.97135600035019,
+          8.55385705145613
+        ],
+        "y": [
+          -11.510836715473252,
+          17.49052808697502
+        ],
+        "z": [
+          0.11553523500942475,
+          0.9741543415206788
+        ]
+      },
+      "missing_fields": []
+    },
+    {
+      "scene": "Warehouse_016",
+      "split": "train",
+      "schema": "full",
+      "field_map": {
+        "object_id": "object id",
+        "class": "object type",
+        "loc3d": "3d location",
+        "bbox3d": "3d bounding box scale",
+        "rot3d": "3d bounding box rotation",
+        "bbox2d": "2d bounding box visible"
+      },
+      "frames": 9000,
+      "detections": 351000,
+      "cameras": [
+        "Camera_0000",
+        "Camera_0001",
+        "Camera_0002",
+        "Camera_0003",
+        "Camera_0004",
+        "Camera_0005",
+        "Camera_0006",
+        "Camera_0007",
+        "Camera_0008",
+        "Camera_0009",
+        "Camera_0010"
+      ],
+      "camera_count": 11,
+      "classes": {
+        "AgilityDigit": {
+          "detections": 63000,
+          "unique_objects": 7
+        },
+        "Forklift": {
+          "detections": 18000,
+          "unique_objects": 2
+        },
+        "FourierGR1T2": {
+          "detections": 45000,
+          "unique_objects": 5
+        },
+        "NovaCarter": {
+          "detections": 27000,
+          "unique_objects": 3
+        },
+        "Person": {
+          "detections": 162000,
+          "unique_objects": 18
+        },
+        "Transporter": {
+          "detections": 36000,
+          "unique_objects": 4
+        }
+      },
+      "bounds": {
+        "x": [
+          -9.74864251537796,
+          8.776108807907283
+        ],
+        "y": [
+          -11.666456368909852,
+          17.203028829168264
+        ],
+        "z": [
+          0.11553481626850726,
+          1.0755656460918708
+        ]
+      },
+      "missing_fields": []
+    },
+    {
+      "scene": "Warehouse_017",
+      "split": "train",
+      "schema": "full",
+      "field_map": {
+        "object_id": "object id",
+        "class": "object type",
+        "loc3d": "3d location",
+        "bbox3d": "3d bounding box scale",
+        "rot3d": "3d bounding box rotation",
+        "bbox2d": "2d bounding box visible"
+      },
+      "frames": 9000,
+      "detections": 42445,
+      "cameras": [
+        "Camera_0000",
+        "Camera_0001",
+        "Camera_0002"
+      ],
+      "camera_count": 3,
+      "classes": {
+        "Forklift": {
+          "detections": 17660,
+          "unique_objects": 2
+        },
+        "PalletTruck": {
+          "detections": 9000,
+          "unique_objects": 1
+        },
+        "Person": {
+          "detections": 15785,
+          "unique_objects": 2
+        }
+      },
+      "bounds": {
+        "x": [
+          0.47328489892317815,
+          8.177318443051973
+        ],
+        "y": [
+          -17.79397987309858,
+          -9.176243343602351
+        ],
+        "z": [
+          0.5795290386636225,
+          1.3450464010238647
+        ]
+      },
+      "missing_fields": []
+    },
+    {
+      "scene": "Warehouse_018",
+      "split": "train",
+      "schema": "full",
+      "field_map": {
+        "object_id": "object id",
+        "class": "object type",
+        "loc3d": "3d location",
+        "bbox3d": "3d bounding box scale",
+        "rot3d": "3d bounding box rotation",
+        "bbox2d": "2d bounding box visible"
+      },
+      "frames": 9000,
+      "detections": 35868,
+      "cameras": [
+        "Camera_0000",
+        "Camera_0001",
+        "Camera_0002"
+      ],
+      "camera_count": 3,
+      "classes": {
+        "Forklift": {
+          "detections": 17868,
+          "unique_objects": 2
+        },
+        "PalletTruck": {
+          "detections": 9000,
+          "unique_objects": 1
+        },
+        "Person": {
+          "detections": 9000,
+          "unique_objects": 1
+        }
+      },
+      "bounds": {
+        "x": [
+          0.4732726947112904,
+          19.52672589786227
+        ],
+        "y": [
+          -17.777421330638447,
+          -9.176243343602351
+        ],
+        "z": [
+          0.577007698284433,
+          1.1766315763555806
+        ]
+      },
+      "missing_fields": []
+    },
+    {
+      "scene": "Warehouse_019",
+      "split": "train",
+      "schema": "full",
+      "field_map": {
+        "object_id": "object id",
+        "class": "object type",
+        "loc3d": "3d location",
+        "bbox3d": "3d bounding box scale",
+        "rot3d": "3d bounding box rotation",
+        "bbox2d": "2d bounding box visible"
+      },
+      "frames": 9000,
+      "detections": 36612,
+      "cameras": [
+        "Camera_0000",
+        "Camera_0001",
+        "Camera_0002"
+      ],
+      "camera_count": 3,
+      "classes": {
+        "Forklift": {
+          "detections": 9000,
+          "unique_objects": 1
+        },
+        "PalletTruck": {
+          "detections": 9000,
+          "unique_objects": 1
+        },
+        "Person": {
+          "detections": 18612,
+          "unique_objects": 3
+        }
+      },
+      "bounds": {
+        "x": [
+          0.2805442421158455,
+          19.141324628136815
+        ],
+        "y": [
+          -18.37241056570197,
+          -9.677936454851078
+        ],
+        "z": [
+          0.33307838582652494,
+          1.0084949270240031
+        ]
+      },
+      "missing_fields": []
+    },
+    {
+      "scene": "Warehouse_020",
+      "split": "val",
+      "schema": "full",
+      "field_map": {
+        "object_id": "object id",
+        "class": "object type",
+        "loc3d": "3d location",
+        "bbox3d": "3d bounding box scale",
+        "rot3d": "3d bounding box rotation",
+        "bbox2d": "2d bounding box visible"
+      },
+      "frames": 9000,
+      "detections": 610776,
+      "cameras": [
+        "Camera_0000",
+        "Camera_0001",
+        "Camera_0002",
+        "Camera_0003",
+        "Camera_0004",
+        "Camera_0005",
+        "Camera_0009",
+        "Camera_0010",
+        "Camera_0011",
+        "Camera_0012",
+        "Camera_0013",
+        "Camera_0015",
+        "Camera_0016",
+        "Camera_0017",
+        "Camera_0018",
+        "Camera_0019"
+      ],
+      "camera_count": 16,
+      "classes": {
+        "Forklift": {
+          "detections": 79564,
+          "unique_objects": 9
+        },
+        "PalletTruck": {
+          "detections": 89988,
+          "unique_objects": 10
+        },
+        "Person": {
+          "detections": 441224,
+          "unique_objects": 60
+        }
+      },
+      "bounds": {
+        "x": [
+          -99.37721755722598,
+          -0.3424905771690021
+        ],
+        "y": [
+          -98.42179424377798,
+          -1.6520102458125012
+        ],
+        "z": [
+          0.5992050595651285,
+          1.4133532394923471
+        ]
+      },
+      "missing_fields": []
+    },
+    {
+      "scene": "Warehouse_021",
+      "split": "val",
+      "schema": "full",
+      "field_map": {
+        "object_id": "object id",
+        "class": "object type",
+        "loc3d": "3d location",
+        "bbox3d": "3d bounding box scale",
+        "rot3d": "3d bounding box rotation",
+        "bbox2d": "2d bounding box visible"
+      },
+      "frames": 9000,
+      "detections": 610776,
+      "cameras": [
+        "Camera_0000",
+        "Camera_0001",
+        "Camera_0002",
+        "Camera_0003",
+        "Camera_0004",
+        "Camera_0005",
+        "Camera_0009",
+        "Camera_0010",
+        "Camera_0011",
+        "Camera_0012",
+        "Camera_0013",
+        "Camera_0015",
+        "Camera_0016",
+        "Camera_0017",
+        "Camera_0018",
+        "Camera_0019"
+      ],
+      "camera_count": 16,
+      "classes": {
+        "Forklift": {
+          "detections": 79564,
+          "unique_objects": 9
+        },
+        "PalletTruck": {
+          "detections": 89988,
+          "unique_objects": 10
+        },
+        "Person": {
+          "detections": 441224,
+          "unique_objects": 60
+        }
+      },
+      "bounds": {
+        "x": [
+          -99.37721755722598,
+          -0.3424905771690021
+        ],
+        "y": [
+          -98.42179424377798,
+          -1.6520102458125012
+        ],
+        "z": [
+          0.5992050595651285,
+          1.4133532394923471
+        ]
+      },
+      "missing_fields": []
+    },
+    {
+      "scene": "Warehouse_022",
+      "split": "val",
+      "schema": "full",
+      "field_map": {
+        "object_id": "object id",
+        "class": "object type",
+        "loc3d": "3d location",
+        "bbox3d": "3d bounding box scale",
+        "rot3d": "3d bounding box rotation",
+        "bbox2d": "2d bounding box visible"
+      },
+      "frames": 9270,
+      "detections": 99130,
+      "cameras": [
+        "Camera_0000",
+        "Camera_0001",
+        "Camera_0002",
+        "Camera_0003"
+      ],
+      "camera_count": 4,
+      "classes": {
+        "Forklift": {
+          "detections": 1638,
+          "unique_objects": 1
+        },
+        "NovaCarter": {
+          "detections": 2269,
+          "unique_objects": 2
+        },
+        "Person": {
+          "detections": 90855,
+          "unique_objects": 24
+        },
+        "Transporter": {
+          "detections": 4368,
+          "unique_objects": 2
+        }
+      },
+      "bounds": {
+        "x": [
+          -98.30857063098915,
+          -42.338335660675625
+        ],
+        "y": [
+          -99.05761910224442,
+          -56.56802533286583
+        ],
+        "z": [
+          0.09873890566325372,
+          1.462660951217913
+        ]
+      },
+      "missing_fields": []
+    }
+  ]
+}
