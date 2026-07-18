@@ -6,8 +6,6 @@ Scope: **validation only**. This project does not train and does not modify the 
 
 📋 **[Full plan and findings → docs/roadmap_validate.md](docs/roadmap_validate.md)**
 
-**Status:** steps 1–3 of 8 complete — GT surveyed, synthetic fixtures built, 2D layer verified.
-
 ---
 
 ## Quickstart
