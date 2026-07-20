@@ -1,0 +1,272 @@
+# Progress — Validation, AI City Challenge 2026 Track 1
+
+One entry per step. Each records what was completed and the evidence for it —
+numbers from the synthetic fixtures, which anyone on the team can reproduce.
+Click a step to expand the commands and detail.
+
+Full plan: [docs/roadmap_validate.md](roadmap_validate.md)
+
+| Step | What | Status |
+|---|---|---|
+| 1 | Survey the ground truth | ✅ done |
+| 2 | Build synthetic fixtures | ✅ done |
+| 3 | Layer 2D — detector check | ✅ done |
+| 4 | Layer 3D — pipeline check | ✅ done |
+| 5 | Verify the validator | ✅ done |
+| 6 | Cross-reference the two layers | ◻ next |
+| 7 | Dashboard | ◻ |
+| 8 | Run on real model output | ◻ |
+
+---
+
+## Step 1 — Survey the ground truth ✅
+
+Scanned all 23 GT scenes and wrote `config/class_registry.json`. This settles
+the facts everything else depends on, rather than assuming them.
+
+**Evidence.** The class table is closed at 7 classes with none unknown.
+PalletTruck — absent from the organizers' published table — is present in the
+GT (97 objects across 13 scenes), so it is kept as class id 6. The class
+coverage per split is the finding that reshaped the plan:
+
+| | Person | Forklift | PalletTruck | NovaCarter | Transporter | AgilityDigit | FourierGR1T2 |
+|---|---|---|---|---|---|---|---|
+| in val | ✅ | ✅ | ✅ | 2 obj | 2 obj | ❌ | ❌ |
+
+Two classes have no ground truth in val at all — so validating on val alone is
+blind to them.
+
+<details>
+<summary>Detail & commands</summary>
+
+```bash
+python3 scripts/inspect_gt.py --gt-root data/gt
+```
+
+- All 23 scenes use the full schema (`object type`, `3d location`, …); the
+  abbreviated variant never appears. Auto-detection is kept only as insurance
+  for the test set.
+- Rotation is Euler `[0, 0, yaw]` — the vertical axis is z, not the y-axis the
+  organizers' spec text describes. The data is the source of truth here.
+- The dataset splits into two warehouse families: family A (~100 m, Person /
+  Forklift / PalletTruck) covers W000–007, W017–022; family B (~16 m, the
+  robot classes) covers W008–016. Val lies in family A.
+- Consequence: **W011** (family B, 6 of 7 classes) is needed for class
+  coverage. Its metrics go in a separate **SEEN** block, because the model
+  trained on it — see the CLEAN/SEEN rule in the roadmap.
+- Scene pairs W000/001, W002/003, W004/005, W006/007, W020/021 are byte
+  duplicates. Not independent samples.
+
+</details>
+
+---
+
+## Step 2 — Build synthetic fixtures ✅
+
+`make_synthetic.py` turns the GT into fake model output with deliberately
+injected errors, plus an `injected_errors.json` answer key stating exactly what
+was broken. This is what makes the validator itself testable in Step 5 — you
+cannot check a measuring tool against data whose true answer you don't know.
+
+**Evidence.** 18 fixture sets (9 error types × W020 and W011). The `clean` set
+is a faithful copy of the GT — 610,776 rows for W020, matching the detection
+count reported by the survey exactly. Each error type is designed to leave a
+different fingerprint across the two layers, which is what lets Step 6 tell
+them apart:
+
+| Error set | Layer 2D | Layer 3D |
+|---|---|---|
+| clean | perfect | perfect |
+| class_swap | wrong | wrong |
+| mapping_shift | **clean** | wrong, systematic |
+| position_shift_severe | **clean** | miss + ghost |
+| fragmentation | **clean** | id count inflated |
+| deletion | miss | miss |
+| phantom | ghost | ghost |
+
+<details>
+<summary>Detail & commands</summary>
+
+```bash
+python3 scripts/make_synthetic.py --config config/config.yaml
+```
+
+- Victims are planned up front from the known object list, so the answer key
+  states exact counts (e.g. "4 class swaps", "450 phantoms") rather than
+  probabilistic ones. A fixture whose contents depend on luck is not a fixture.
+- Seeded (`seed: 42`) — the same config reproduces the same fixture byte for
+  byte.
+- `mapping_shift` is the important one: it writes File B (raw 2D) with the
+  correct class table but File A (3D) with a shifted one. That asymmetry is the
+  signature of a miswired remap, and it is invisible unless both layers are
+  measured.
+- Defaults to full length (9000 frames). Override with `--frames` while
+  iterating.
+
+</details>
+
+---
+
+## Step 3 — Layer 2D: does the model see the object? ✅
+
+Compares File B (raw per-camera detections, before any 3D lifting or tracking)
+against the 2D boxes in the GT. Class-blind IoU + Hungarian matching, confusion
+matrix with miss/ghost bands, macro-averaged metrics. Because it sits right
+after the detector, anything it reports belongs to the detector alone.
+
+**Evidence.** Verified against the fixtures on both warehouse families.
+
+| Fixture (W020, 9000 frames) | Macro P | Macro R | Reads as |
+|---|---|---|---|
+| clean | 1.0000 | 1.0000 | perfect — the acceptance test |
+| mapping_shift | **1.0000** | **1.0000** | blind, correctly — fault is downstream |
+| class_swap | 0.9908 | 0.9641 | model error, visible here |
+| deletion | 1.0000 | 0.9700 | 63,469 misses |
+| phantom | 0.9996 | 1.0000 | 894 ghosts |
+
+`mapping_shift` scoring a perfect 1.000 is the point, not a bug: the detector
+did its job, so this layer stays silent and leaves the fault for Layer 3D to
+catch.
+
+<details>
+<summary>Detail, the two bugs this step caught, & commands</summary>
+
+```bash
+python3 scripts/run_layer2d.py --scene Warehouse_020 --set clean
+python3 scripts/run_layer2d.py --scene Warehouse_020 --set mapping_shift
+```
+
+Two real bugs surfaced because `clean` refused to score a perfect 1.000:
+
+1. **Zero-area GT boxes.** The GT carries boxes with no area — objects occluded
+   to nothing or clipped at the frame edge (3391 per 500 frames on W020). They
+   match nothing, so `clean` scored 0.948. Both sides now filter by
+   `min_box_area_px`, and the excluded count is reported rather than dropped
+   silently — charging the model with a miss for an object that occupies no
+   pixels would be wrong.
+
+2. **False positives on absent classes.** On W020 only 3 of 7 classes are
+   present, so a misclassification can land on a class with no GT — and the
+   macro average, which skips classes with no GT, never saw it. `class_swap`
+   was hiding 73,549 such false positives behind a precision of 1.000. They are
+   now counted and reported in their own block.
+
+Both were caught by the fixture, not by luck — which is the entire reason the
+`clean` set exists.
+
+</details>
+
+---
+
+## Step 4 — Layer 3D: after fuse/track/remap, is the class still right? ✅
+
+Compares File A (`track1.txt`, the submitted 3D output) against the GT 3D
+locations. Euclidean distance matching in world space, class-blind, Hungarian —
+the same discipline as Layer 2D, in meters instead of pixels. Each track is
+resolved to a single class (majority vote), matching how the pipeline assigns
+one class per object.
+
+**Evidence.** The three fixtures that Layer 2D was blind to must all become
+visible here — that inversion is the whole reason two layers exist.
+
+| Fixture (W020, 9000 frames) | Layer 2D | Layer 3D | Diagnosis |
+|---|---|---|---|
+| clean | 1.0000 | 1.0000 | — |
+| mapping_shift | 1.0000 | **0.0000**, `Person→Forklift 100%` | mapping error |
+| position_shift_severe | 1.0000 | **0.8914**, 47,979 miss+ghost | pipeline error |
+| fragmentation | 1.0000 | class 1.000, **track ratio 1.20** | broken association |
+| class_swap | 0.964 | **0.966** | model error |
+
+The contrast between the two layers is the diagnosis: `mapping_shift` clean in
+2D but 100%-wrong in 3D can only be the remap; `class_swap` wrong in both is the
+model itself.
+
+<details>
+<summary>Detail & commands</summary>
+
+```bash
+python3 scripts/run_layer3d.py --scene Warehouse_020 --set clean
+python3 scripts/run_layer3d.py --scene Warehouse_020 --set mapping_shift
+```
+
+- `mapping_shift` reports the systematic pattern explicitly: every Person →
+  Forklift, every Forklift → NovaCarter, at 100%. A model that confused objects
+  would err here and there; erring on every single instance in one fixed
+  direction is a constant, i.e. a wiring fault.
+- `position_shift_severe` produces scattered miss+ghost (48K) rather than a
+  clean 100% shift — that difference is what separates a pipeline error from a
+  mapping error at diagnosis time.
+- `fragmentation` keeps classes perfect while the predicted-track count exceeds
+  the GT-track count. The coarse ratio warning fires above 1.15; the exact
+  per-track evidence is checked against the answer key in Step 5.
+- A track that wears more than one class across its frames is flagged as
+  `flicker` — an object's class should be stable, so that is itself a defect.
+
+</details>
+
+---
+
+## Step 5 — Verify the validator ✅
+
+Runs both layers against every synthetic set and checks each result against
+that set's `injected_errors.json` answer key. This is the step that measures
+the validator instead of a model: if it cannot reproduce errors whose answer
+is known, its numbers on a real model mean nothing. Reading 18 sets by eye
+does not scale and does not survive a code change — from here it is an
+assertion that passes or fails.
+
+**Evidence.** All 18 sets pass on both scenes at full length (9000 frames).
+
+```
+RESULT: 18/18 sets passed
+The validator reproduces every injected error. It can be trusted
+to measure a real model.
+```
+
+Each expectation is phrased as a relationship between the two layers, because
+that relationship — not either number alone — is what the design promises. For
+example `mapping_shift` requires 2D clean **and** every present class flagged
+at ~100% in 3D; `class_swap` requires confusion in **both** layers.
+
+<details>
+<summary>Detail, the two check bugs full-scale runs caught, & commands</summary>
+
+```bash
+python3 scripts/verify_validator.py            # all source scenes, full length
+python3 scripts/verify_validator.py --scene Warehouse_020 --frames 500  # fast
+```
+
+Exit code is 0 on all-pass, 1 otherwise, so it drops into CI directly.
+
+Two bugs surfaced — both in the *checks*, not the validator, and both hidden by
+short smoke-test runs:
+
+1. **mapping_shift check compared against the whole 7-class table.** W020 holds
+   only 3 classes, so it can flag at most 3, and the check demanded 6 → false
+   FAIL. Fixed to compare against classes actually present in the scene. The
+   validator was right the whole time; the check was wrong, and only a
+   side-by-side number comparison caught it.
+
+2. **position_shift check demanded exactly zero class confusion.** At 9000
+   frames on a crowded scene, a badly-displaced object occasionally lands
+   within 1m of a different-class neighbour, so class-blind matching pairs
+   them — 56 out of 48,000 (0.01%). That is correct behaviour, not a defect.
+   The check now allows negligible confusion (<1% of matched) and only fails
+   when confusion becomes the signal. Measured noise: 0.01–0.07% across both
+   scenes.
+
+The lesson both times: verify at full length before declaring a step done.
+Small runs don't reach the density where these effects appear — the same thing
+happened with zero-area boxes in Step 3.
+
+</details>
+
+---
+
+## Steps 6–8 — not started
+
+- **Step 6** reads both layers and prints the model / pipeline / mapping
+  verdict automatically, from the same two-layer relationships Step 5 checks.
+- **Step 7** is the Streamlit dashboard — the model's metrics on screen.
+- **Step 8** runs the whole thing on real output from the training stage. By
+  then it is just pointing the finished tool at their files.

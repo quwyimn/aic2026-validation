@@ -4,7 +4,7 @@ Quality-control stage for the Track 1 model. Takes the model's output files, com
 
 Scope: **validation only**. This project does not train and does not modify the model.
 
-📋 **[Full plan and findings → docs/roadmap_validate.md](docs/roadmap_validate.md)**
+📋 **[Full plan → docs/roadmap_validate.md](docs/roadmap_validate.md)**  ·  📈 **[Progress → docs/PROGRESS.md](docs/PROGRESS.md)**
 
 ---
 
