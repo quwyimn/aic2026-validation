@@ -13,8 +13,8 @@ Full plan: [docs/roadmap_validate.md](roadmap_validate.md)
 | 3 | Layer 2D — detector check | ✅ done |
 | 4 | Layer 3D — pipeline check | ✅ done |
 | 5 | Verify the validator | ✅ done |
-| 6 | Cross-reference the two layers | ◻ next |
-| 7 | Dashboard | ◻ |
+| 6 | Cross-reference the two layers | ✅ done |
+| 7 | Dashboard | ◻ next |
 | 8 | Run on real model output | ◻ |
 
 ---
@@ -173,7 +173,7 @@ visible here — that inversion is the whole reason two layers exist.
 |---|---|---|---|
 | clean | 1.0000 | 1.0000 | — |
 | mapping_shift | 1.0000 | **0.0000**, `Person→Forklift 100%` | mapping error |
-| position_shift_severe | 1.0000 | **0.8914**, 47,979 miss+ghost | pipeline error |
+| position_shift_severe | 1.0000 | **0.8914**, 47,979 miss + 47,979 ghost | pipeline error |
 | fragmentation | 1.0000 | class 1.000, **track ratio 1.20** | broken association |
 | class_swap | 0.964 | **0.966** | model error |
 
@@ -193,9 +193,10 @@ python3 scripts/run_layer3d.py --scene Warehouse_020 --set mapping_shift
   Forklift, every Forklift → NovaCarter, at 100%. A model that confused objects
   would err here and there; erring on every single instance in one fixed
   direction is a constant, i.e. a wiring fault.
-- `position_shift_severe` produces scattered miss+ghost (48K) rather than a
-  clean 100% shift — that difference is what separates a pipeline error from a
-  mapping error at diagnosis time.
+- `position_shift_severe` produces scattered miss+ghost rather than a clean
+  100% shift — that difference is what separates a pipeline error from a
+  mapping error at diagnosis time. Each displaced object yields exactly one
+  miss **and** one ghost: 47,979 of each on W020, 43,984 on W011.
 - `fragmentation` keeps classes perfect while the predicted-track count exceeds
   the GT-track count. The coarse ratio warning fires above 1.15; the exact
   per-track evidence is checked against the answer key in Step 5.
@@ -263,10 +264,95 @@ happened with zero-area boxes in Step 3.
 
 ---
 
-## Steps 6–8 — not started
+## Step 6 — Cross-reference the two layers ✅
 
-- **Step 6** reads both layers and prints the model / pipeline / mapping
-  verdict automatically, from the same two-layer relationships Step 5 checks.
-- **Step 7** is the Streamlit dashboard — the model's metrics on screen.
+Reads both layer reports and names the stage at fault — MODEL / MAPPING /
+PIPELINE / CLEAN — automatically. Up to Step 5 the two layers produced numbers
+that a human read side by side; from here the contrast between them is a
+verdict the tool states itself.
+
+**Evidence.** 16/16 diagnostic verdicts correct on both warehouse families at
+full length (9000 frames). Each verdict is derived from the *relationship*
+between the layers, never from either number alone:
+
+| Fixture (W020) | Layer 2D | Layer 3D | Verdict |
+|---|---|---|---|
+| clean | clean | clean | CLEAN |
+| class_swap | conf 4.98% | conf 5.55% | **MODEL** |
+| mapping_shift | clean | all present classes ~100% | **MAPPING** |
+| position_shift | clean | clean (under 1m) | CLEAN |
+| position_shift_severe | clean | miss+ghost 15.71% | **PIPELINE** |
+| deletion | miss 3.83% | miss 5.21% | **MODEL** |
+| phantom | ghost 894 | ghost + track 6.70x | **MODEL** |
+| fragmentation | clean | track 1.20x, no ghost | **PIPELINE** |
+
+The decisive question is **"is Layer 2D clean"**, not "is there a miss/ghost".
+`deletion` and `position_shift_severe` both produce large miss+ghost and are
+indistinguishable by magnitude; one shows in 2D (the detector's fault) and the
+other only in 3D (a later stage's). That single distinction is what the whole
+two-layer design buys.
+
+On W011 the same logic holds against a 6-class table: `mapping_shift` flags the
+full offset-1 cycle — Person→Forklift→NovaCarter→Transporter→FourierGR1T2→
+AgilityDigit→PalletTruck — proving the rule does not depend on how many classes
+a scene happens to hold.
+
+<details>
+<summary>Detail, the bug a full-length run caught, & commands</summary>
+
+```bash
+python3 tests/test_verdict.py            # logic only, no GT needed
+python3 scripts/run_validation.py        # both scenes, full length
+python3 scripts/run_validation.py --input v1_option_d   # real model run
+```
+
+Exit code 0 on all-pass, 1 otherwise — drops into CI beside Step 5.
+
+**One real bug, caught only at full length.** The first version gated *every*
+dimension by a fraction of GT. `phantom` injects 894 false boxes against 1.66M
+2D detections — 0.05%, far under the 1% gate — so Layer 2D read as clean, the
+fault fell through to the 3D branch, hit the 6.70x track inflation, and was
+diagnosed **PIPELINE instead of MODEL**. A fabricated object was blamed on the
+tracker.
+
+The fix was to stop treating the two dimensions alike:
+
+- **Confusion** stays fraction-based. Class-blind matching on a dense scene
+  genuinely does pair a displaced object with a wrong-class neighbour; that
+  trace scales with crowding and must be tolerated (measured 0.01–0.07%).
+- **Miss / ghost** is not. Density produces confusion, never a fabricated or
+  dropped match — so on a clean layer these sit at zero and any nonzero value
+  is signal. What implicates the detector is the same loss appearing in **both**
+  layers, regardless of how small the fraction is.
+
+`phantom` now routes MODEL on the presence of ghosts in both layers, and
+`fragmentation` stays PIPELINE because it re-ids real objects and produces no
+ghosts at all. Confirmed on two scenes with unrelated magnitudes — 894 ghosts /
+6.70x on W020, 909 / 9.18x on W011.
+
+The unit test that had passed this case was itself at fault: it gave `phantom`
+a 5% ghost rate, a round guess that no fixture produces. Test numbers that
+don't match reality hide the exact bug the test exists to catch. It now carries
+the magnitudes transcribed from the machine run.
+
+**Known limit — compound faults.** `mixed` reports MODEL, and that is the
+correct dominant cause (2D confusion 6.40%), but the same run also carries a
+systematic relabel on 2 classes and 6.75x track inflation. A single verdict
+names one stage; the rest lives in the `observations` list attached to every
+result. The Step 7 dashboard must surface observations alongside the verdict,
+or a real compound fault will hide behind one reassuring word.
+
+**Thresholds** live in `config.yaml` under `diagnosis:` — nothing hardcoded in
+`src/`. They mirror the tolerances already proven in Step 5.
+
+</details>
+
+---
+
+## Steps 7–8 — not started
+
+- **Step 7** is the Streamlit dashboard — the model's metrics on screen. It
+  reads `reports/` and computes nothing itself. It must show the `observations`
+  list next to the verdict, not the verdict alone.
 - **Step 8** runs the whole thing on real output from the training stage. By
   then it is just pointing the finished tool at their files.
