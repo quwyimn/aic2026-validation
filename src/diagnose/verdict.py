@@ -168,6 +168,8 @@ def diagnose(r2d, r3d, *, tau_conf=TAU_CONF, tau_loss=TAU_LOSS,
     if loss3d >= tau_loss:
         obs.append(f"3D miss+ghost {loss3d*100:.2f}% of GT "
                    f"(miss={miss3}, ghost={ghost3})")
+    elif ghost3 > 0 or miss3 > 0:
+        obs.append(f"3D miss={miss3}, ghost={ghost3} (small but present)")
     if ratio > tau_ratio:
         obs.append(f"3D track inflation {ratio:.2f}x")
     if flicker:

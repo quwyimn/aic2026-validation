@@ -349,10 +349,45 @@ or a real compound fault will hide behind one reassuring word.
 
 ---
 
-## Steps 7–8 — not started
+Step 7 — Dashboard ✅
 
-- **Step 7** is the Streamlit dashboard — the model's metrics on screen. It
-  reads `reports/` and computes nothing itself. It must show the `observations`
-  list next to the verdict, not the verdict alone.
+Puts the results on screen for the team. Reads reports/ and computes nothing: a dashboard that recalculates becomes a second source of truth, and two sources drift apart.
+
+Two tabs, in this order. Can the tool be trusted? shows the fixture results — known faults, and whether the tool named the right stage for each. How did the model do? stays empty until the training stage hands over File A and File B, and says what to put where in the meantime.
+
+Evidence. The data layer is asserted without a browser (tests/test_dashboard_data.py), and the app itself is rendered head­lessly through Streamlit's AppTest in all three states it can be opened in: fixture report present, nothing at all, and a real model run present. No exception in any of them.
+
+The centrepiece is one row per fixture — the two layer states, then the verdict they produce:
+
+fragmentation   clean  →  track inflated 1.22×   =  PIPELINE · at fuse / track / lift
+deletion        61,718 miss  →  27,000 miss      =  MODEL · at the detector
+
+Reading the rows side by side is the argument: deletion and position_shift_severe both lose objects, and the only thing separating them is which layer saw it. Verdict colours are ordered by position in the pipeline — MODEL at the detector, PIPELINE at fuse/track, MAPPING at the remap — so the palette carries the diagnosis rather than decorating it.
+
+<details> <summary>Detail, the three display bugs this step caught, & commands</summary>
+bash
+python3 tests/test_dashboard_data.py     # no GT needed, runs anywhere
+streamlit run dashboard/app.py
+
+scripts/run_validation.py now persists the full layer reports in verify mode. Without them the dashboard has verdicts but no confusion matrices, so reports/step6_verify.json must be regenerated after that change.
+
+Three bugs, none of which touched a verdict — the diagnosis was right the whole time, the screen described it wrongly. On a page whose entire job is to earn trust, that is not a lesser class of bug:
+
+The confusion matrix silently dropped columns. Axis names came from per_class, which holds only classes with GT. But mapping_shift on W020 sends Forklift → NovaCarter, and NovaCarter has no GT there; those land as matched pairs, not ghosts, so the whole column vanished. This is the same trap as the absent-class false positives in Step 3. Axes now come from the union of cells, miss, ghost and per_class.
+The per-class table would not render. A column holding both a number and an em dash is mixed-type, and Arrow — which Streamlit serialises through — refuses it. Every cell is now formatted as text.
+The layer strip contradicted the verdict on two rows. It watched confusion, miss and ghost per layer, while the verdict also weighs track inflation and the ghost-in-both-layers rule. So fragmentation showed two clean layers beside a PIPELINE verdict, and position_shift showed an orange 3D layer beside a CLEAN one. The strip now reads both reports together and states the evidence at three levels: clean, seen-but-below- threshold, and decisive. verdict.py gained the 3D counterpart of the "small but present" observation so the CLI and the dashboard describe the same run identically.
+
+Bug 3 is the one worth remembering. The rule it broke is that a reader must never be asked to reconcile two parts of the same screen — and the fix was not to soften the strip toward the verdict, but to make it report what the verdict actually rests on.
+
+Known limit — compound faults. mixed displays MODEL while its 3D cell reads systematic relabel · 5 classes. Both are true: 2D is dirty, so MODEL wins outright, because a detector that already mislabels cannot be rescued downstream. The rest of the story is in the observations list under each fixture. Say this out loud when presenting — a single verdict naming one stage is a design decision, not an oversight.
+
+What the fixture numbers confirm on their own. Two counts that must hold by construction, and do: the 3D row count divided by 9000 frames comes out to whole objects (W011: 20 Person, 3 Forklift, 3 NovaCarter, 9 Transporter, 10 FourierGR1T2, 10 AgilityDigit = 55, against 494,981 rows where 55 × 9000 = 495,000), and 2D exceeds 3D by ~2.3×, the mean number of cameras that see an object. Neither depends on the validator being correct, which is what makes them worth watching — and both work on the test set, where there is no ground truth to check against at all.
+
+</details>
+
+---
+
+## Steps 8 — not started
+
 - **Step 8** runs the whole thing on real output from the training stage. By
   then it is just pointing the finished tool at their files.

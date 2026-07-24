@@ -110,7 +110,18 @@ def verify_diagnosis(cfg, scenes, max_frames, tau):
             summary.append({"scene": scene, "error_set": es,
                             "expected": expect, "got": v.verdict,
                             "passed": ok, "reason": v.reason,
-                            "evidence": v.evidence})
+                            # observations carry every signal both layers saw,
+                            # not just the one the verdict names. On a compound
+                            # fault the verdict under-reports by design, so the
+                            # dashboard must show these beside it.
+                            "observations": v.observations,
+                            "evidence": v.evidence,
+                            # Full layer reports, so the dashboard renders the
+                            # confusion matrices from the same numbers the
+                            # verdict was derived from — never recomputed, never
+                            # a second source that can drift out of agreement.
+                            "report_2d": r2,
+                            "report_3d": r3})
 
     print(f"\n{'='*70}")
     asserted = [s for s in summary if s["expected"] is not None]
