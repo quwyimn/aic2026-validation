@@ -349,7 +349,7 @@ or a real compound fault will hide behind one reassuring word.
 
 ---
 
-Step 7 — Dashboard ✅
+## Step 7 — Dashboard ✅
 
 Puts the results on screen for the team. Reads reports/ and computes nothing: a dashboard that recalculates becomes a second source of truth, and two sources drift apart.
 
