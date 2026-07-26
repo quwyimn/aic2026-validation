@@ -4,9 +4,9 @@ Quality-control stage for the Track 1 model. Takes the model's output files, com
 
 Scope: **validation only**. This project does not train and does not modify the model.
 
-> **Is this validator actually correct?** Yes — and not on our own say-so: the official NVIDIA HOTA scorer, run independently on our own fixtures, agrees with the diagnosis. The full evidence is in **[PROOF.md](PROOF.md)**.
+> **Is this validator actually correct?** Yes — and not on our own say-so: the official NVIDIA HOTA scorer, run independently on our own fixtures, agrees with the diagnosis. The full evidence is in **[PROOF.md](docs/PROOF.md)**.
 
-📋 **[Full plan → docs/roadmap_validate.md](docs/roadmap_validate.md)**  ·  📈 **[Progress → docs/PROGRESS.md](docs/PROGRESS.md)**  ·  ✅ **[Proof → PROOF.md](PROOF.md)**
+📋 **[Full plan → docs/roadmap_validate.md](docs/roadmap_validate.md)**  ·  📈 **[Progress → docs/PROGRESS.md](docs/PROGRESS.md)**  ·  ✅ **[Proof → PROOF.md](docs/PROOF.md)**
 
 ---
 
@@ -184,7 +184,7 @@ Everything above proves the validator is *self-consistent*: fixtures the team bu
 
 The one thing that breaks that loop is running the **official NVIDIA HOTA scorer** (`spatialai-data-utils`) on the team's own fixtures: an independent parser, an independent 3D-IoU matcher, an independent metric. On `clean` it returns HOTA = 100.00; on `mapping_shift` it returns ≈ 0 — both predicted in advance, and the `clean = 100` in particular means the file was accepted and scored as perfect by the organizers' own code.
 
-The full evidence, what each layer does and does *not* establish, and how a sceptic reproduces every number, is in **[PROOF.md](PROOF.md)**.
+The full evidence, what each layer does and does *not* establish, and how a sceptic reproduces every number, is in **[PROOF.md](docs/PROOF.md)**.
 
 ---
 
