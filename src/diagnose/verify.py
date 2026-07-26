@@ -20,17 +20,28 @@ from pathlib import Path
 
 
 class Check:
-    """One expectation and whether the validator met it."""
+    """One expectation and whether the validator met it.
 
-    def __init__(self, name, ok, detail=""):
+    `flavor` distinguishes *why* a check passed. A set can pass because the
+    validator is correct, or because it is deliberately blind (wl_swap) or
+    because the metric itself is indifferent (yaw_pi). Those must never look
+    identical on screen — a "PASS" that means "we can't see this" dressed up
+    as a "PASS" that means "this is right" is exactly the false reassurance
+    an 18/18 tally is supposed to prevent. Default is empty: every existing
+    check keeps printing exactly as before.
+    """
+
+    def __init__(self, name, ok, detail="", flavor=""):
         self.name = name
         self.ok = ok
         self.detail = detail
+        self.flavor = flavor
 
     def __str__(self):
         mark = "PASS" if self.ok else "FAIL"
+        flav = f" {self.flavor}" if self.flavor else ""
         tail = f"  ({self.detail})" if self.detail else ""
-        return f"  [{mark}] {self.name}{tail}"
+        return f"  [{mark}]{flav} {self.name}{tail}"
 
 
 def _macro(report, metric):
@@ -63,6 +74,16 @@ def _off_diag_fraction(report):
     whether confusion stays negligible, not by whether it is exactly zero."""
     total = _matched_total(report)
     return (_off_diag(report) / total) if total else 0.0
+
+
+def _layer_is_clean(r):
+    """CLEAN = perfect precision and recall, no miss, ghost or confusion.
+    Same bar verify_clean uses, factored out so the geometry verifiers assert
+    cleanliness against the identical fields rather than a looser proxy."""
+    p = _macro(r, "precision")
+    rec = _macro(r, "recall")
+    return (abs(p - 1.0) < 1e-6 and abs(rec - 1.0) < 1e-6
+            and _miss(r) == 0 and _ghost(r) == 0 and _off_diag(r) == 0)
 
 
 # --- Per-error-type expectations -------------------------------------------
@@ -218,8 +239,101 @@ def verify_mixed(key, r2d, r3d):
     return checks
 
 
+def verify_wl_swap(key, r2d, r3d, ctx=None):
+    """KNOWN BLIND SPOT. width<->length swapped; centre and class untouched.
+
+    The validator matches on centre distance and never looks at box shape, so
+    BOTH layers must report CLEAN — the defect is real but invisible here.
+    Two assertions, and the second is the safety catch:
+
+      (a) both layers CLEAN  — the validator behaves as documented today;
+      (b) the answer key carries the blind_spot flag — the defect is on record.
+
+    If someone later upgrades layer 3D to match on centre+shape, (a) flips:
+    3D stops being CLEAN, this check FAILS, and Step 5 turns red at exactly the
+    line that says "the blind spot is gone, update the expectation." That is
+    what keeps a *known* blind spot from silently becoming a *forgotten* one.
+    """
+    flavor = "[BLIND SPOT]"
+    n = len(key.get("wl_swap", []))
+    flag = key.get("blind_spot")
+    checks = [Check("answer key records w<->l swaps", n > 0,
+                    f"{n} boxes", flavor)]
+    checks.append(Check(
+        "answer key carries the blind-spot flag", flag == "shape_via_3d_iou",
+        f"blind_spot={flag!r}", flavor))
+    for layer, r in (("2D", r2d), ("3D", r3d)):
+        clean = _layer_is_clean(r)
+        checks.append(Check(
+            f"{layer} reports CLEAN (validator blind to shape — only 3D IoU sees it)",
+            clean,
+            f"P={_macro(r,'precision'):.4f} offdiag={_off_diag(r)} "
+            f"miss={_miss(r)} ghost={_ghost(r)}", flavor))
+    return checks
+
+
+def verify_yaw_pi(key, r2d, r3d, ctx=None):
+    """yaw + 180 deg. CLEAN in both layers — but for a different reason than
+    wl_swap, and the report must not conflate the two.
+
+    A box is symmetric under a 180 deg rotation about its vertical axis, so the
+    official 3D-IoU metric scores it identically. This is not a limitation of
+    the validator; it is the rule of the game. The flag is therefore
+    expected_zero_impact, not blind_spot: head/tail direction is genuinely
+    worth zero points, and the fixture exists to prove that negative.
+    """
+    flavor = "[ZERO-IMPACT]"
+    n = len(key.get("yaw_pi", []))
+    flag = key.get("expected_zero_impact")
+    checks = [Check("answer key records yaw+180deg flips", n > 0,
+                    f"{n} boxes", flavor)]
+    checks.append(Check(
+        "answer key carries the zero-impact flag",
+        flag == "180deg_symmetry", f"expected_zero_impact={flag!r}", flavor))
+    for layer, r in (("2D", r2d), ("3D", r3d)):
+        checks.append(Check(
+            f"{layer} reports CLEAN (180deg is a box symmetry — even 3D IoU is unchanged)",
+            _layer_is_clean(r),
+            f"P={_macro(r,'precision'):.4f} offdiag={_off_diag(r)}", flavor))
+    return checks
+
+
+def verify_dup_id(key, r2d, r3d, ctx=None):
+    """Not a layer question. Two rows share (scene, class, frame, object_id),
+    which makes the official scorer's TrackEval raise. The layers cannot see
+    this — it is a submission-integrity fault — so Step 5's job here is to
+    confirm PREFLIGHT catches it, on the full-length file.
+
+    ctx must carry the path to this set's track1.txt. Without it the check
+    cannot run and fails loudly rather than passing vacuously.
+    """
+    n = len(key.get("dup_id", {}))
+    checks = [Check("answer key records duplicated ids", n > 0, f"{n} ids")]
+    path = (ctx or {}).get("file_a")
+    if not path:
+        checks.append(Check("preflight ran on File A", False,
+                            "no track1.txt path supplied to the verifier"))
+        return checks
+    try:
+        from src.io.preflight import check_file
+    except Exception as e:  # noqa: BLE001
+        checks.append(Check("preflight importable", False, str(e)))
+        return checks
+    rep = check_file(path)
+    dup = rep["issues"].get("E_DUP")
+    checks.append(Check(
+        "preflight FATALs on duplicate (scene,class,frame,object_id)",
+        bool(dup) and dup["severity"] == "FATAL" and dup["count"] > 0,
+        f"E_DUP count={dup['count'] if dup else 0}, "
+        f"fatal_total={rep['fatal_count']}"))
+    return checks
+
+
 VERIFIERS = {
     "clean": verify_clean,
+    "wl_swap": verify_wl_swap,
+    "yaw_pi": verify_yaw_pi,
+    "dup_id": verify_dup_id,
     "class_swap": verify_class_swap,
     "mapping_shift": verify_mapping_shift,
     "position_shift": verify_position_shift,
@@ -231,10 +345,19 @@ VERIFIERS = {
 }
 
 
-def verify_set(error_set, key, r2d, r3d):
+def verify_set(error_set, key, r2d, r3d, ctx=None):
     """Return list of Check for one error set. Unknown sets pass vacuously with
-    a note rather than crashing the whole run."""
+    a note rather than crashing the whole run.
+
+    `ctx` carries extra paths a verifier may need (currently only dup_id, which
+    reads File A to prove preflight catches it). Verifiers written against the
+    original three-argument signature are called unchanged; only those that
+    declare a fourth parameter receive ctx, so the nine original verifiers are
+    untouched."""
     fn = VERIFIERS.get(error_set)
     if fn is None:
         return [Check(f"no verifier defined for '{error_set}'", True, "skipped")]
+    import inspect
+    if len(inspect.signature(fn).parameters) >= 4:
+        return fn(key, r2d, r3d, ctx)
     return fn(key, r2d, r3d)

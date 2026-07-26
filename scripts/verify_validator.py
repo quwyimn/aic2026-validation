@@ -30,18 +30,22 @@ def run_one(cfg, scene, error_set, max_frames):
     base = cfg.synthetic_root / scene / error_set
     key_path = base / "injected_errors.json"
     if not key_path.exists():
-        return None, None, None
+        return None, None, None, None
     key = json.loads(key_path.read_text())
 
     gt_path = cfg.find_gt(scene)
+    file_a = base / "track1.txt"
     cm2, _ = layer_2d.run(gt_path, base / "detections_2d.txt", cfg, max_frames)
-    cm3, s3 = layer_3d.run(gt_path, base / "track1.txt", cfg, max_frames)
+    cm3, s3 = layer_3d.run(gt_path, file_a, cfg, max_frames)
 
     r2 = cm2.to_dict()
     r3 = cm3.to_dict()
     r3["track_ratio"] = s3["track_ratio"]
     r3["flicker_tracks"] = s3["flicker_tracks"]
-    return key, r2, r3
+    # ctx carries paths a verifier may need beyond the two reports (dup_id
+    # reads File A to prove preflight catches the collision).
+    ctx = {"file_a": str(file_a)}
+    return key, r2, r3, ctx
 
 
 def main():
@@ -64,20 +68,27 @@ def main():
     for scene in scenes:
         print(f"\n{'='*70}\nSCENE {scene}\n{'='*70}")
         for es in sets:
-            key, r2, r3 = run_one(cfg, scene, es, args.frames)
+            key, r2, r3, ctx = run_one(cfg, scene, es, args.frames)
             if key is None:
                 print(f"\n{es}: no fixture found — skipped")
                 continue
-            checks = verify.verify_set(es, key, r2, r3)
+            checks = verify.verify_set(es, key, r2, r3, ctx)
             passed = all(c.ok for c in checks)
             all_pass = all_pass and passed
             mark = "PASS" if passed else "FAIL"
-            print(f"\n{es}  [{mark}]")
+            # Surface the set-level flavor so a blind-spot pass and an ordinary
+            # pass never read the same. If any check in the set is flavored,
+            # the strongest flavor rides up to the header line.
+            flavors = [c.flavor for c in checks if getattr(c, "flavor", "")]
+            flav = f" {flavors[0]}" if flavors else ""
+            print(f"\n{es}  [{mark}]{flav}")
             for c in checks:
                 print(c)
             summary.append({
                 "scene": scene, "error_set": es, "passed": passed,
-                "checks": [{"name": c.name, "ok": c.ok, "detail": c.detail}
+                "flavor": flavors[0] if flavors else "",
+                "checks": [{"name": c.name, "ok": c.ok, "detail": c.detail,
+                            "flavor": getattr(c, "flavor", "")}
                            for c in checks],
             })
 

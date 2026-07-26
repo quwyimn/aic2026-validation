@@ -24,7 +24,23 @@ the two layers — which is what makes the Step 6 diagnosis testable:
     fragmentation   correct       ids split     pipeline error
     deletion        missing       missing       model miss
     phantom         extra         extra         false positive
-    clean           correct       correct       nothing — must score perfect
+    wl_swap         correct       correct*       nothing in the validator — a
+                                                 KNOWN BLIND SPOT. File A keeps
+                                                 the centre and class, only w
+                                                 and l are swapped, so the 1m
+                                                 centre-distance match still
+                                                 pairs it and the validator
+                                                 reports CLEAN. Only 3D IoU
+                                                 (the official metric) sees it.
+    yaw_pi          correct       correct        nothing, correctly — a box is
+                                                 symmetric under a 180 deg yaw,
+                                                 so even 3D IoU is unchanged.
+                                                 Injected to PROVE the negative.
+    dup_id          correct       (fatal)        not a metric error: two rows
+                                                 share (scene,class,frame,id).
+                                                 The scorer's TrackEval raises.
+                                                 Caught by preflight, not layers.
+    clean           correct       correct        nothing — must score perfect
 
 Usage:
     python3 scripts/make_synthetic.py --config config/config.yaml
@@ -232,6 +248,43 @@ class Injector:
                 self.log["mapping_shift"][c] = [i, self.map_shift[c]]
             self.log["params"]["offset"] = off
 
+        # wl_swap / yaw_pi — geometry-only corruptions of File A. Centre and
+        # class are untouched, so the validator's centre-distance match (both
+        # layers) stays perfect. Their whole purpose is to expose that layer
+        # 3D never looks at box shape or heading, while the official 3D-IoU
+        # metric does. See docs/PROGRESS.md, step 6.5.
+        self.wl_swap = set(self._pick("wl_swap", remaining))
+        self.log["wl_swap"] = sorted(self.wl_swap)
+        self.yaw_pi = set(self._pick("yaw_pi", remaining))
+        self.log["yaw_pi"] = sorted(self.yaw_pi)
+        # Self-describing markers verify.py reads. Two different kinds of
+        # CLEAN: wl_swap is CLEAN because the validator is blind (only 3D IoU
+        # would catch it); yaw_pi is CLEAN because the official metric itself
+        # assigns zero penalty (a box is symmetric under 180deg yaw). They
+        # must never look alike in a report.
+        if self.wl_swap:
+            self.log["blind_spot"] = "shape_via_3d_iou"
+        if self.yaw_pi:
+            self.log["expected_zero_impact"] = "180deg_symmetry"
+
+        # dup_id — pick victims and a per-victim collision target, another
+        # object OF THE SAME CLASS. On every shared frame the victim is
+        # re-emitted under the target's id, so (scene,class,frame,id) collides.
+        # This is the full-length positive case for the preflight duplicate
+        # check; mapping_shift cannot produce it because the remap is a
+        # bijection. See lượt-3 handoff.
+        self.dup_target = {}
+        if self._active("dup_id"):
+            by_class = {}
+            for oid, cls in self.objects.items():
+                if oid not in self.deleted:
+                    by_class.setdefault(cls, []).append(oid)
+            for oid in self._pick("dup_id", remaining):
+                pool = [o for o in by_class.get(self.objects[oid], []) if o != oid]
+                if pool:
+                    self.dup_target[oid] = self.rng.choice(pool)
+            self.log["dup_id"] = {str(k): v for k, v in self.dup_target.items()}
+
     # -- per-object application --------------------------------------------
     def is_deleted(self, oid):
         return oid in self.deleted
@@ -264,6 +317,31 @@ class Injector:
             ids.append(new_id)
         return new_id
 
+    def swapped_scale(self, oid, w, l):
+        """wl_swap: exchange width and length. A rectangle's footprint IoU
+        against its w/l-swapped self is well under the first HOTA alpha for
+        any elongated box, so it tanks the official metric — but the centre
+        never moves, so the validator's match is unaffected."""
+        if oid in self.wl_swap:
+            return l, w
+        return w, l
+
+    def flipped_yaw(self, oid, yaw):
+        """yaw_pi: rotate 180 deg. A box is symmetric under this, so IoU is
+        unchanged: the fixture must score CLEAN even under the real metric.
+        It exists to prove head/tail direction is worth zero points."""
+        if oid in self.yaw_pi:
+            a = yaw + math.pi
+            while a > math.pi:
+                a -= 2 * math.pi
+            return a
+        return yaw
+
+    def duplicated_id(self, oid):
+        """dup_id: re-label the victim with another same-class object's id,
+        creating a colliding (scene,class,frame,id) on every shared frame."""
+        return self.dup_target.get(oid, oid)
+
     def official_id(self, cls):
         """Class id as written to File A. mapping_shift diverts here and only
         here — File B keeps the true table. That asymmetry is the signature
@@ -295,6 +373,20 @@ class Injector:
 
 
 # --- Generation -------------------------------------------------------------
+
+def conf_for(seed, sid, frame_id, oid):
+    """Detection confidence for a File B row.
+
+    Keyed only by (seed, scene, frame, object) — NOT by the error set — so
+    File B is byte-identical across every set that does not itself change a
+    File B row. That invariant is checkable in one second with md5sum, which
+    is worth more than a comment explaining why the confidences drift. The
+    original code drew conf from the same rng stream as phantoms, so the
+    stream forked per set and File B differed for no real reason.
+    """
+    h = random.Random(f"{seed}:conf:{sid}:{frame_id}:{oid}")
+    return 0.55 + h.random() * 0.44
+
 
 def scene_id_of(name):
     digits = "".join(ch for ch in name if ch.isdigit())
@@ -375,7 +467,7 @@ def generate(gt_path, scene, cfg, registry_scene, error_set, params, out_dir,
                 for cam, box in boxes.items():
                     if not box or len(box) < 4:
                         continue
-                    conf = 0.55 + rng.random() * 0.44
+                    conf = conf_for(cfg["synthetic"]["seed"], sid, frame_id, oid)
                     fb.write(f"{camera_id_of(cam)} {frame_id} {b_cls} "
                              f"{float(box[0]):.2f} {float(box[1]):.2f} "
                              f"{float(box[2]):.2f} {float(box[3]):.2f} {conf:.3f}\n")
@@ -384,9 +476,11 @@ def generate(gt_path, scene, cfg, registry_scene, error_set, params, out_dir,
                 # --- File A: 3D tracking output --------------------------
                 loc_out = inj.shifted_location(oid, [float(v) for v in loc[:3]], rng)
                 out_id = inj.fragmented_id(oid, frame_id)
+                out_id = inj.duplicated_id(out_id)   # dup_id, after frag
                 a_cls = inj.official_id(seen_cls)
-                yaw = extract_yaw(rot, yaw_index)
+                yaw = inj.flipped_yaw(oid, extract_yaw(rot, yaw_index))
                 w, l, h = (float(v) for v in (list(scale) + [1, 1, 1])[:3])
+                w, l = inj.swapped_scale(oid, w, l)  # wl_swap: shape only
                 fa.write(f"{sid} {a_cls} {out_id} {frame_id} "
                          f"{loc_out[0]:.4f} {loc_out[1]:.4f} {loc_out[2]:.4f} "
                          f"{w:.4f} {l:.4f} {h:.4f} {yaw:.4f}\n")
@@ -404,7 +498,7 @@ def generate(gt_path, scene, cfg, registry_scene, error_set, params, out_dir,
                 for cam, box in ph["boxes"].items():
                     fb.write(f"{camera_id_of(cam)} {frame_id} {b_cls} "
                              f"{box[0]:.2f} {box[1]:.2f} {box[2]:.2f} {box[3]:.2f} "
-                             f"{rng.uniform(0.5, 0.95):.3f}\n")
+                             f"{conf_for(cfg['synthetic']['seed'], sid, frame_id, ph['oid']):.3f}\n")
                     rows_b += 1
 
     fa.close()
@@ -444,6 +538,18 @@ EXPECTATIONS = {
     "phantom": "Both layers show ghosts, no misses, no off-diagonal cells.",
     "fragmentation": "Both layers clean on class. Object id count in File A "
                      "far exceeds the GT track count.",
+    "wl_swap": "KNOWN BLIND SPOT. Both layers report CLEAN: centre and class "
+               "are untouched, so the centre-distance match is perfect. The "
+               "defect is real — width and length are swapped — but only 3D "
+               "IoU sees it. verify.py expects CLEAN here AND asserts the "
+               "blind-spot note is attached, so a future centre+shape match "
+               "would flip this to a caught error and fail Step 5 loudly.",
+    "yaw_pi": "Both layers CLEAN, and correctly so: a box is symmetric under "
+              "a 180 deg yaw, so even the official 3D-IoU metric is unchanged. "
+              "Proves head/tail direction costs no points.",
+    "dup_id": "Layers are not the check here. preflight must FATAL on a "
+              "duplicate (scene,class,frame,object_id); this is its "
+              "full-length positive case.",
     "mixed": "All of the above at once.",
 }
 
@@ -524,6 +630,15 @@ def main():
             bits.append(f"{len(log['fragmented'])} tracks fragmented")
         if log["phantom_count"]:
             bits.append(f"{log['phantom_count']} phantoms")
+        if log.get("wl_swap"):
+            bits.append(f"{len(log['wl_swap'])} boxes w<->l swapped "
+                        f"[blind spot: {log.get('blind_spot')}]")
+        if log.get("yaw_pi"):
+            bits.append(f"{len(log['yaw_pi'])} boxes yaw+180deg "
+                        f"[zero-impact: {log.get('expected_zero_impact')}]")
+        if log.get("dup_id"):
+            bits.append(f"{len(log['dup_id'])} ids duplicated onto a "
+                        f"same-class object (preflight E_DUP)")
         print(f"\n{log['scene']} / {log['error_set']}")
         print(f"  injected: {', '.join(bits) if bits else 'nothing'}")
         print(f"  expected: {log['expectation']}")

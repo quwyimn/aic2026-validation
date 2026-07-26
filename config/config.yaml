@@ -104,6 +104,15 @@ synthetic:
     phantom:        {rate: 0.05}                    # false positives
     mapping_shift:  {offset: 1}                     # whole class table miswired
     fragmentation:  {rate: 0.10, splits: 3}         # one track cut into many IDs
+    # --- Geometry-only sets (touch File A only; File B stays byte-identical) ---
+    # wl_swap is a KNOWN, DELIBERATE blind spot: centre + class are intact, so
+    # the centre-distance match reports CLEAN. Only the official 3D IoU sees the
+    # swapped footprint. yaw_pi proves the opposite: a 180deg flip is invisible
+    # even to 3D IoU (box symmetry), so zero points are lost. dup_id is the
+    # full-length positive case for the preflight duplicate check.
+    wl_swap:        {rate: 0.10}                    # w<->l; blind spot
+    yaw_pi:         {rate: 0.10}                    # yaw+pi; zero-impact proof
+    dup_id:         {rate: 0.05}                    # colliding (scene,class,frame,id)
     mixed:          {rate: 0.05}
 
 # --- Reporting ---------------------------------------------------------------
