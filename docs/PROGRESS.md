@@ -391,3 +391,63 @@ What the fixture numbers confirm on their own. Two counts that must hold by cons
 
 - **Step 8** runs the whole thing on real output from the training stage. By
   then it is just pointing the finished tool at their files.
+
+## Note — external verification
+
+Steps 5–6 prove the validator is *self-consistent*: fixtures the team built,
+checked by a tool the team built. That is necessary but cannot, on its own, rule
+out a shared blind spot — if the fixture generator and the validator misread the
+same thing, both agree and both are wrong. Breaking that loop needs a judge that
+never passed through the team's hands. This note records that cross-check. It is
+not a stage in the pipeline; it sits on top of Steps 5–6.
+
+**Evidence.** The official NVIDIA HOTA scorer (`spatialai-data-utils`,
+`evaluate_aicity_mtmc.py`) — an independent parser, an independent 3D-IoU
+matcher, an independent metric — run on the team's own fixtures, at full length:
+
+| Fixture | Validator says | Official HOTA | Predicted first? |
+|---|---|---|---|
+| `clean` | CLEAN (both layers 1.000) | **100.00** (DetA/AssA/LocA = 100/100/99.9997) | ✅ |
+| `mapping_shift` | MAPPING | **0.0096** (≈ 0) | ✅ |
+
+Both numbers were called before the scorer ran. `clean = 100` means the file was
+accepted and scored as perfect by the organizers' own code; `mapping_shift ≈ 0`
+reproduces the exact skip-pattern of a class permutation (every pair either
+missing GT or missing pred). What `clean = 100` does **not** by itself prove —
+that column order and yaw axis match the organizers rather than merely matching
+between converter and generator — rests on a second, documentary leg: reading
+the scorer's own parser and rotation code. The one residual (a transposition
+shared by converter and generator) closes at Step 8, when the training stage's
+independently-written file is scored on the same GT.
+
+Full evidence, the boundary of each claim, and the exact reproduction commands
+are in [PROOF.md](../PROOF.md).
+
+<details>
+<summary>What this added to the repo, and the two supporting tools</summary>
+
+- **`gt_to_txt.py`** — converts `ground_truth.json` to the 11-column txt the
+  scorer needs, using the validator's own loader so there is no second parser to
+  disagree. `--self-check` asserts key-for-key match against a fixture: on
+  `clean`, 610,776 rows each side, 0 mismatches, at full 9000 frames.
+- **`preflight.py` / `preflight_submission.py`** — the submission-format gate.
+  Answers "will the official scorer even accept this file?" with no ground truth,
+  so it is the only check that can run on the withheld test set. Every FATAL rule
+  traces to a line of the scorer's own code (degenerate box → `pytorch3d`
+  `iou_box3d.py:73–89`; 11-field parse → `aicity_mtmc_eval.py:302–313`; a scene
+  left empty scores 0 → `:514–530`). 33/33 cases, each rule with both a
+  must-catch and a must-stay-silent case.
+- **Three geometry fixtures** in `make_synthetic.py` — `wl_swap` (a genuine
+  blind spot: the 3D layer matches on centre distance, so a width↔length swap
+  reads CLEAN while 3D IoU does not), `yaw_pi` (proves a 180° flip costs zero
+  points — the box is symmetric, so it is a rule of the game, not a tool
+  limitation), and `dup_id` (a full-length positive case for the preflight
+  duplicate-id check). Verify now prints `PASS [BLIND SPOT]` and
+  `PASS [ZERO-IMPACT]` rather than a bare PASS, so a set that passes because the
+  tool is *correct* never looks like one that passes because it is *blind*.
+
+**Reproduce:** `python3 scripts/gt_to_txt.py --scene Warehouse_020 --self-check
+data/synthetic/Warehouse_020/clean/track1.txt` then the scorer command in
+PROOF.md.
+
+</details>

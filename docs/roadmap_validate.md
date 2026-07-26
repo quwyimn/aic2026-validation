@@ -100,7 +100,9 @@ The official submission format. One line = one object at one frame. Space-separa
 | frame_id | int | Frame index, **zero-based**, within that scene |
 | x, y, z | float | 3D coordinates of the bounding-box centroid in the world coordinate system, in **meters** |
 | width, length, height | float | Box dimensions along the x (width), y (length), and z (height) axes of the object-centered coordinate system, origin at the centroid. In **meters** |
-| yaw | float | Euler angle in **radians** about the y-axis of the object-centered coordinate system, defining the box's heading in the world coordinate system. Pitch and roll are assumed zero |
+| yaw | float | Euler angle in **radians** defining the box's heading in the world coordinate system. Pitch and roll are assumed zero |
+
+> **Correction, externally confirmed.** The organizers' spec text says yaw is "about the y-axis". It is not — it is about the **z-axis** (the vertical). This was confirmed against NVIDIA's own rotation-matrix code (`_base_dataset.py`, composing `Rz @ Ry @ Rx` with yaw on Rz), not inferred. The data is the source of truth; a converter that read yaw as a y-rotation would place every box at the wrong heading and quietly halve 3D IoU.
 
 ### 1.4 File B — `detections_2d.txt`
 
@@ -248,6 +250,8 @@ A script reads both layers' results and prints the verdict table from section 2.
 
 Results are split into the CLEAN and SEEN blocks defined in section 1.2 and reported separately. Metrics from the two blocks are never averaged into a single number: an overall figure carried by scenes the model trained on would mislead everyone reading it. Every table leads with macro-averaged metrics, given the 20:1 imbalance between Person and the rarest classes.
 
+> **Note — external verification (not a step in this plan).** Steps 5–6 prove the validator is *self-consistent*: fixtures the team built, checked by a tool the team built. To rule out a shared blind spot — the generator and the validator misreading the same thing — the team additionally runs the **official NVIDIA HOTA scorer** (`spatialai-data-utils`) on its own fixtures. On `clean` it returns HOTA = 100.00; on `mapping_shift`, ≈ 0 — both predicted in advance. This is what breaks the self-proving loop, and it also confirms the handoff format matches the organizers (column order, class table, and the yaw-axis correction in 1.3). Two supporting tools came out of this: `preflight` (does the official scorer even accept a submission file? — the only check that runs on the withheld test set) and `gt_to_txt` (GT → the 11-column txt the scorer needs). Full evidence and the exact reproduction commands are in **[PROOF.md](../PROOF.md)**. None of this is a numbered pipeline step; it is a cross-check layered on top of Steps 5–6.
+
 ### Step 7 — Dashboard
 
 Streamlit, showing:
@@ -289,4 +293,4 @@ Step 1 (download + survey GT)  ✅ done
 
 **Step 1 is complete** — the GT is downloaded, the class table is closed, and the scene selection is settled (section 1.2). Next is Step 2.
 
-**Open question for the organizers:** does the test set contain AgilityDigit and FourierGR1T2? If it does, the team is validating two classes with no clean ground truth behind them, and everyone should know that.
+**Open question for the organizers — now answered.** Does the test set contain AgilityDigit and FourierGR1T2? **Yes.** Confirmed from NVIDIA's published dataset card (per-class object counts across all synthetic scenes): the counts for both classes exceed what the train+val scenes account for, so the surplus lives in the test scenes (W023–W025). The team **is** validating two classes that have no clean ground truth of their own in val — which is exactly why the SEEN block (W011) is kept for the mapping check. The precise test-set object counts cannot be pinned down without the withheld test GT; only the qualitative fact (both classes are present) is settled.
